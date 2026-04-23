@@ -15,14 +15,10 @@ interface FlatChoice {
   searchKey: string;
 }
 
-/**
- * Searchable tree picker. Only SUPPORTING_OUTCOME nodes are selectable, but
- * each option carries the full breadcrumb so the user sees how their commit
- * maps up to the Rally Cry.
- */
 export function StrategicNodePicker({ value, onChange, error }: StrategicNodePickerProps) {
   const { data: tree, isLoading } = useGetStrategicTreeQuery();
   const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(!value);
 
   const flat = useMemo(() => flatten(tree ?? []), [tree]);
   const filtered = useMemo(() => {
@@ -33,50 +29,89 @@ export function StrategicNodePicker({ value, onChange, error }: StrategicNodePic
 
   const selected = flat.find((c) => c.id === value);
 
+  function handleSelect(id: string) {
+    onChange(id);
+    setOpen(false);
+    setQuery('');
+  }
+
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-ink">
         Supporting Outcome <span className="text-claude-500">*</span>
       </label>
-      {selected && (
-        <div className="rounded-md border border-claude-200 bg-claude-50 px-3 py-2">
-          <Breadcrumb segments={selected.segments} />
+
+      {/* Selected value — compact display */}
+      {selected && !open && (
+        <div className="flex items-center justify-between rounded-md border border-claude-200 bg-claude-50 px-3 py-2">
+          <Breadcrumb segments={selected.segments} size="sm" />
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="ml-3 shrink-0 rounded px-2 py-0.5 text-xs font-medium text-claude-500 transition-colors hover:bg-claude-100"
+          >
+            Change
+          </button>
         </div>
       )}
-      <input
-        type="search"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search outcomes…"
-        className="w-full rounded-md border border-border bg-white px-3 py-2 text-sm placeholder:text-ink-subtle focus:border-claude-400"
-      />
-      <div
-        className="max-h-64 overflow-y-auto rounded-md border border-border bg-white"
-        role="listbox"
-      >
-        {isLoading ? (
-          <div className="flex items-center justify-center p-4">
-            <Spinner />
+
+      {/* Empty state — prompt to pick */}
+      {!selected && !open && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="w-full rounded-md border border-dashed border-border px-3 py-3 text-left text-sm text-ink-muted transition-colors hover:border-claude-300 hover:bg-cream-50"
+        >
+          Pick a Supporting Outcome…
+        </button>
+      )}
+
+      {/* Picker dropdown — only when open */}
+      {open && (
+        <div className="space-y-2 rounded-md border border-border bg-white p-2 shadow-card">
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search outcomes…"
+            autoFocus
+            className="w-full rounded-md border border-border bg-cream-50 px-3 py-2 text-sm placeholder:text-ink-subtle focus:border-claude-400 focus:bg-white"
+          />
+          <div className="max-h-48 overflow-y-auto" role="listbox">
+            {isLoading ? (
+              <div className="flex items-center justify-center p-4"><Spinner /></div>
+            ) : filtered.length === 0 ? (
+              <p className="p-3 text-sm text-ink-muted">No matching outcomes.</p>
+            ) : (
+              filtered.slice(0, 50).map((choice) => (
+                <button
+                  key={choice.id}
+                  type="button"
+                  onClick={() => handleSelect(choice.id)}
+                  className={cn(
+                    'block w-full rounded-md px-3 py-2 text-left transition-colors',
+                    'hover:bg-cream-100',
+                    value === choice.id && 'bg-claude-50 ring-1 ring-claude-200',
+                  )}
+                >
+                  <Breadcrumb segments={choice.segments} size="sm" />
+                </button>
+              ))
+            )}
           </div>
-        ) : filtered.length === 0 ? (
-          <p className="p-4 text-sm text-ink-muted">No matching outcomes.</p>
-        ) : (
-          filtered.slice(0, 50).map((choice) => (
-            <button
-              key={choice.id}
-              type="button"
-              onClick={() => onChange(choice.id)}
-              className={cn(
-                'block w-full border-b border-border-subtle px-3 py-2 text-left transition-colors last:border-b-0',
-                'hover:bg-cream-100',
-                value === choice.id && 'bg-claude-50',
-              )}
-            >
-              <Breadcrumb segments={choice.segments} />
-            </button>
-          ))
-        )}
-      </div>
+          {value && (
+            <div className="flex justify-end border-t border-border-subtle pt-2">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="rounded px-3 py-1 text-xs font-medium text-ink-muted hover:bg-cream-100"
+              >
+                Done
+              </button>
+            </div>
+          )}
+        </div>
+      )}
       <FieldError message={error} />
     </div>
   );

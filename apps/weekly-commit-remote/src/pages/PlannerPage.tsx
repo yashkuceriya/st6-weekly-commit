@@ -46,6 +46,20 @@ export function PlannerPage() {
   const readiness = useMemo(() => (plan ? evaluateLockReadiness(plan) : null), [plan]);
   const pathsByOutcome = useMemo(() => buildPathIndex(tree ?? []), [tree]);
 
+  const activeCommits = useMemo(() => plan?.commits.filter((c) => c.active) ?? [], [plan]);
+
+  // Chess layer distribution for summary bar — must be before early returns (Rules of Hooks)
+  const chessDistribution = useMemo(() => {
+    if (!chessLayers || activeCommits.length === 0) return [];
+    const counts: Record<string, number> = {};
+    for (const c of activeCommits) {
+      if (c.chessLayerCategoryId) counts[c.chessLayerCategoryId] = (counts[c.chessLayerCategoryId] ?? 0) + 1;
+    }
+    return chessLayers
+      .filter((cl) => counts[cl.id])
+      .map((cl) => ({ id: cl.id, name: cl.name, color: cl.color, count: counts[cl.id]! }));
+  }, [activeCommits, chessLayers]);
+
   if (isLoading) {
     return (
       <div className="flex h-96 items-center justify-center">
@@ -63,7 +77,6 @@ export function PlannerPage() {
   }
 
   const isDraft = plan.state === 'DRAFT';
-  const activeCommits = plan.commits.filter((c) => c.active);
 
   async function handleAdd(values: CommitFormValues) {
     if (!plan) return;
@@ -107,12 +120,6 @@ export function PlannerPage() {
     }
   }
 
-  /**
-   * Native HTML5 drag-to-reorder. On drop, we rebuild the priority order and
-   * fire updateCommit for every commit whose rank changed. Sequential rather
-   * than parallel because optimistic locking would fight us if N commits
-   * shared a stale plan version. RTK Query invalidation refetches once.
-   */
   async function handleDrop(targetIndex: number) {
     if (dragIndex == null || dragIndex === targetIndex || !isDraft) {
       setDragIndex(null);
@@ -151,9 +158,12 @@ export function PlannerPage() {
     setDragOverIndex(null);
   }
 
+  const linkedCount = activeCommits.filter((c) => c.supportingOutcomeId).length;
+
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="space-y-8">
+      {/* ─── Left column: commits ─── */}
+      <div className="space-y-6">
         <PlanHeader plan={plan} readiness={readiness} onLock={handleLock} locking={locking} />
 
         {serverErrors && (
@@ -164,14 +174,14 @@ export function PlannerPage() {
 
         {activeCommits.length === 0 ? (
           <EmptyState
-            title="Plan your week"
-            description="Add three to five commits. Each one needs a Supporting Outcome — that's how every weekly bet ties back to strategy."
+            title="First week on Weekly Commit?"
+            description="Start by picking a Supporting Outcome — everything else flows from there."
             action={
-              isDraft ? <Button onClick={() => setAdding(true)}>Add your first commit</Button> : undefined
+              isDraft ? <Button onClick={() => setAdding(true)}>Pick a Supporting Outcome →</Button> : undefined
             }
           />
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {activeCommits.map((commit, idx) => (
               <div
                 key={commit.id}
@@ -207,17 +217,119 @@ export function PlannerPage() {
               </div>
             ))}
             {isDraft && (
-              <div className="flex justify-center">
-                <Button variant="ghost" onClick={() => setAdding(true)}>
-                  + Add commit
-                </Button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setAdding(true)}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-transparent py-4 text-sm text-ink-subtle transition-colors hover:border-claude-300 hover:text-ink-soft"
+              >
+                <span className="text-lg">+</span> Add commit
+              </button>
             )}
           </div>
         )}
       </div>
 
+      {/* ─── Right column: sidebar ─── */}
       <aside className="space-y-4">
+        {/* This week summary */}
+        <Card>
+          <CardBody>
+            <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-subtle">This week</p>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="font-serif text-[2.25rem] leading-none text-ink">{activeCommits.length}</span>
+              <span className="text-sm text-ink-muted">Planned Commits</span>
+            </div>
+            {/* Chess layer distribution bar */}
+            {chessDistribution.length > 0 && (
+              <>
+                <div className="mt-4 flex h-2 overflow-hidden rounded-full">
+                  {chessDistribution.map((d) => (
+                    <div
+                      key={d.id}
+                      className="h-full"
+                      style={{ width: `${(d.count / activeCommits.length) * 100}%`, backgroundColor: d.color }}
+                    />
+                  ))}
+                </div>
+                <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
+                  {chessDistribution.map((d) => (
+                    <div key={d.id} className="flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: d.color }} />
+                      <span className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-muted">
+                        {d.name} ({d.count})
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+            <div className="mt-3 border-t border-border pt-3">
+              <p className="font-mono text-[0.6rem] uppercase tracking-wider text-ink-subtle">
+                Coverage · {linkedCount} of {activeCommits.length} linked to RCDO
+              </p>
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Lock this week CTA */}
+        {isDraft && (
+          <Card>
+            <CardBody className="space-y-3">
+              <h3 className="font-serif text-base text-ink">Lock this week</h3>
+              {readiness.canLock ? (
+                <p className="rounded-md bg-success-subtle px-3 py-2 text-xs text-success">
+                  ✓ All commits validated
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-xs text-ink-muted">
+                    You have {readiness.totalIssues} item{readiness.totalIssues === 1 ? '' : 's'} remaining before you can lock your plan for the week.
+                  </p>
+                  {Object.entries(readiness.errorsByCommit).slice(0, 3).flatMap(([commitId, errs]) => {
+                    const commit = activeCommits.find((c) => c.id === commitId);
+                    return Object.keys(errs).map((field) => (
+                      <p key={`${commitId}-${field}`} className="flex items-start gap-1.5 text-xs text-danger">
+                        <span className="mt-0.5">●</span>
+                        <span>Missing &ldquo;{field}&rdquo; on {commit?.title?.slice(0, 30) ?? 'commit'}.</span>
+                      </p>
+                    ));
+                  })}
+                </div>
+              )}
+              <Button className="w-full" onClick={handleLock} loading={locking} disabled={!readiness.canLock || locking}>
+                🔒 Lock week
+              </Button>
+            </CardBody>
+          </Card>
+        )}
+
+        {/* Carry forward from last week */}
+        {activeCommits.some((c) => c.carryGeneration > 0) && (
+          <Card variant="soft">
+            <CardBody>
+              <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-subtle">
+                Carry forward from last week
+              </p>
+              <div className="mt-3 space-y-2">
+                {activeCommits
+                  .filter((c) => c.carryGeneration > 0)
+                  .map((c) => (
+                    <div key={c.id} className="flex items-start gap-2 rounded-md bg-cream-50 px-3 py-2">
+                      <input type="checkbox" checked readOnly className="mt-1 rounded border-border" />
+                      <div>
+                        <p className="text-sm text-ink">{c.title}</p>
+                        <p className="font-mono text-[0.6rem] text-ink-subtle">
+                          Gen {c.carryGeneration} · from previous week
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </CardBody>
+          </Card>
+        )}
+
+        {/* Activity feed */}
         <Card variant="soft">
           <CardHeader>
             <h3 className="font-serif text-base text-ink">Activity</h3>
@@ -226,16 +338,9 @@ export function PlannerPage() {
             <ActivityFeed entries={mapActivity(activity)} />
           </CardBody>
         </Card>
-        {isDraft && activeCommits.length > 0 && (
-          <Card variant="soft">
-            <CardBody className="text-xs text-ink-muted">
-              <p className="mb-2 font-medium text-ink-soft">Tip</p>
-              <p>Drag commits to reorder priority — rank 1 is most important.</p>
-            </CardBody>
-          </Card>
-        )}
       </aside>
 
+      {/* Modal */}
       {(adding || editing) && (
         <Modal onClose={() => (adding ? setAdding(false) : setEditing(null))}>
           <CommitForm
@@ -263,7 +368,7 @@ function mapActivity(entries: { id: string; eventType: string; actor: string; oc
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-ink/40 px-4 py-8"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/50 px-4 py-12 backdrop-blur-sm"
       onClick={onClose}
     >
       <div className="w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>

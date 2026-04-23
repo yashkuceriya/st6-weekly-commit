@@ -1,8 +1,9 @@
 import type { WeeklyPlan } from '@st6/shared-types';
-import { Button, SectionHeader, StatusBadge } from '@st6/shared-ui';
+import { Button } from '@st6/shared-ui';
 import { Link } from 'react-router-dom';
-import { formatTimestamp, formatWeekRange } from '../lib/format';
+import { formatTimestamp } from '../lib/format';
 import type { LockReadiness } from '../lib/lock-validation';
+import { LifecycleBar } from './LifecycleBar';
 
 interface PlanHeaderProps {
   plan: WeeklyPlan;
@@ -11,55 +12,51 @@ interface PlanHeaderProps {
   locking?: boolean;
 }
 
+function formatWeekTitle(weekStart: string): string {
+  const start = new Date(weekStart + 'T00:00:00');
+  const end = new Date(start);
+  end.setDate(end.getDate() + 4);
+  const fmt = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  const fmtShort = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' });
+  return `Week of ${fmtShort.format(start)} – ${fmt.format(end)}`;
+}
+
 export function PlanHeader({ plan, readiness, onLock, locking }: PlanHeaderProps) {
   const isDraft = plan.state === 'DRAFT';
   return (
-    <div className="space-y-4">
-      <SectionHeader
-        eyebrow={formatWeekRange(plan.weekStartDate)}
-        title="Your week"
-        subtitle="Three to five commits, each linked to a Supporting Outcome. Lock by Tuesday."
-        actions={
-          <div className="flex items-center gap-3">
-            <StatusBadge status={plan.state} />
-            {isDraft && (
-              <div className="flex flex-col items-end">
-                <Button onClick={onLock} loading={locking} disabled={!readiness.canLock || locking}>
-                  Lock the week
-                </Button>
-                {!readiness.canLock && (
-                  <p className="mt-1 text-xs text-ink-muted">
-                    {readiness.emptyPlan
-                      ? 'Add at least one commit before locking.'
-                      : `${readiness.totalIssues} issue${readiness.totalIssues === 1 ? '' : 's'} to fix below.`}
-                  </p>
-                )}
-              </div>
-            )}
-            {plan.state === 'LOCKED' && (
-              <Link to="reconcile">
-                <Button variant="secondary">Start reconciliation</Button>
-              </Link>
-            )}
-            {plan.state === 'RECONCILING' && (
-              <Link to="reconcile">
-                <Button>Continue reconciliation</Button>
-              </Link>
-            )}
-          </div>
-        }
-      />
-      {plan.state !== 'DRAFT' && (
-        <div className="flex items-center justify-between rounded-md border border-claude-200 bg-claude-50 px-4 py-3 text-sm text-claude-700">
-          <span>
-            <strong className="font-semibold">Locked at {formatTimestamp(plan.lockedAt)}</strong>
-            {plan.reconciledAt && ` · Reconciled at ${formatTimestamp(plan.reconciledAt)}`}
-          </span>
-          <span className="font-mono text-xs uppercase tracking-wider text-claude-500">
-            v{plan.version}
-          </span>
+    <div className="space-y-2">
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="font-serif text-[2rem] leading-tight tracking-tight text-ink">
+            {formatWeekTitle(plan.weekStartDate)}
+          </h1>
+          <LifecycleBar current={plan.state} />
         </div>
-      )}
+        <div className="flex items-center gap-3">
+          {isDraft && (
+            <Button onClick={onLock} loading={locking} disabled={!readiness.canLock || locking}>
+              Lock the week
+            </Button>
+          )}
+          {plan.state === 'LOCKED' && (
+            <Link to="reconcile">
+              <Button variant="secondary">Start reconciliation</Button>
+            </Link>
+          )}
+          {plan.state === 'RECONCILING' && (
+            <Link to="reconcile">
+              <Button>Continue reconciliation</Button>
+            </Link>
+          )}
+        </div>
+      </div>
+      <p className="text-sm italic text-ink-muted">
+        {isDraft
+          ? 'Lock your week by Monday 10am. Every commit must link to a Supporting Outcome.'
+          : plan.reconciledAt
+            ? `Reconciled at ${formatTimestamp(plan.reconciledAt)}`
+            : `Locked at ${formatTimestamp(plan.lockedAt)}`}
+      </p>
     </div>
   );
 }

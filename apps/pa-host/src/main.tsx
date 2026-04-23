@@ -10,17 +10,28 @@ import '@st6/shared-ui/styles.css';
 
 initStaleChunkHandler();
 
-const root = document.getElementById('root');
-if (!root) throw new Error('#root element missing from index.html');
+async function startApp() {
+  // Start MSW mock API so the app works without a backend
+  const { worker } = await import('./mocks/browser');
+  await worker.start({
+    onUnhandledRequest: 'bypass',
+    serviceWorker: { url: '/mockServiceWorker.js' },
+  });
 
-createRoot(root).render(
-  <StrictMode>
-    <Auth0ProviderWithRedirect>
-      <Provider store={store}>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </Provider>
-    </Auth0ProviderWithRedirect>
-  </StrictMode>,
-);
+  const root = document.getElementById('root');
+  if (!root) throw new Error('#root element missing from index.html');
+
+  createRoot(root).render(
+    <StrictMode>
+      <Auth0ProviderWithRedirect>
+        <Provider store={store}>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </Provider>
+      </Auth0ProviderWithRedirect>
+    </StrictMode>,
+  );
+}
+
+startApp();

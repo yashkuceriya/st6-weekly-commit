@@ -81,17 +81,18 @@ export function CommitForm({
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="max-h-[85vh] overflow-y-auto shadow-lift">
+      <CardHeader className="sticky top-0 z-10 border-b border-border bg-white">
         <div>
           <h3 className="font-serif text-lg text-ink">{initial?.id ? 'Edit commit' : 'New commit'}</h3>
-          <p className="mt-1 text-sm text-ink-muted">
-            Strategic alignment and clear evidence are required to lock the week.
+          <p className="mt-1 text-xs text-ink-muted">
+            Align to a Supporting Outcome and describe evidence for Friday.
           </p>
         </div>
       </CardHeader>
       <form onSubmit={handleSubmit}>
-        <CardBody className="space-y-4">
+        <CardBody className="space-y-5">
+          {/* Title */}
           <div>
             <div className="flex items-baseline justify-between">
               <label className="block text-sm font-medium text-ink">
@@ -102,9 +103,8 @@ export function CommitForm({
                 onClick={handleSuggest}
                 disabled={suggesting}
                 className="text-xs font-medium text-claude-500 transition-colors hover:text-claude-600 disabled:text-ink-subtle"
-                title="AI suggest title from rationale + outcome (stub in dev)"
               >
-                {suggesting ? 'Thinking…' : '✨ Suggest'}
+                {suggesting ? 'Thinking...' : '✨ Suggest'}
               </button>
             </div>
             <input
@@ -112,62 +112,67 @@ export function CommitForm({
               value={values.title}
               onChange={(e) => update('title', e.target.value)}
               placeholder="e.g. Ship outbound campaign for fintech vertical"
-              className="mt-1 w-full rounded-md border border-border bg-white px-3 py-2 text-sm placeholder:text-ink-subtle focus:border-claude-400"
+              className="mt-1 w-full rounded-md border border-border bg-white px-3 py-2 text-sm placeholder:text-ink-subtle focus:border-claude-400 focus:ring-1 focus:ring-claude-400/25"
               autoFocus
             />
             <FieldError message={titleErr} />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-ink">Why this matters</label>
-            <textarea
-              value={values.rationale}
-              onChange={(e) => update('rationale', e.target.value)}
-              placeholder="One sentence on why this is on your week."
-              rows={2}
-              className="mt-1 w-full rounded-md border border-border bg-white px-3 py-2 text-sm placeholder:text-ink-subtle focus:border-claude-400"
-            />
+          {/* Why + Evidence side by side on larger screens */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-ink">Why this matters</label>
+              <textarea
+                value={values.rationale}
+                onChange={(e) => update('rationale', e.target.value)}
+                placeholder="One sentence on why this is on your week."
+                rows={3}
+                className="mt-1 w-full rounded-md border border-border bg-white px-3 py-2 text-sm placeholder:text-ink-subtle focus:border-claude-400 focus:ring-1 focus:ring-claude-400/25"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-ink">
+                Expected evidence <span className="text-claude-500">*</span>
+              </label>
+              <textarea
+                value={values.expectedEvidence}
+                onChange={(e) => update('expectedEvidence', e.target.value)}
+                placeholder="What will you point to on Friday?"
+                rows={3}
+                className="mt-1 w-full rounded-md border border-border bg-white px-3 py-2 text-sm placeholder:text-ink-subtle focus:border-claude-400 focus:ring-1 focus:ring-claude-400/25"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-ink">
-              Expected evidence <span className="text-claude-500">*</span>
-            </label>
-            <textarea
-              value={values.expectedEvidence}
-              onChange={(e) => update('expectedEvidence', e.target.value)}
-              placeholder="What will you point to on Friday to say this is done?"
-              rows={2}
-              className="mt-1 w-full rounded-md border border-border bg-white px-3 py-2 text-sm placeholder:text-ink-subtle focus:border-claude-400"
-            />
-          </div>
-
+          {/* Strategic alignment */}
           <StrategicNodePicker
             value={values.supportingOutcomeId}
             onChange={(id) => update('supportingOutcomeId', id)}
           />
 
-          <ChessLayerPicker
-            value={values.chessLayerCategoryId}
-            onChange={(id) => update('chessLayerCategoryId', id)}
-          />
-
-          <div>
-            <label className="block text-sm font-medium text-ink">Priority rank</label>
-            <select
-              value={values.priorityRank}
-              onChange={(e) => update('priorityRank', Number(e.target.value))}
-              className="mt-1 w-32 rounded-md border border-border bg-white px-3 py-2 text-sm focus:border-claude-400"
-            >
-              {[1, 2, 3, 4, 5].map((n) => (
-                <option key={n} value={n}>
-                  {n} — {n === 1 ? 'critical' : n === 5 ? 'low' : 'normal'}
-                </option>
-              ))}
-            </select>
+          {/* Chess layer + Priority on one row */}
+          <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+            <ChessLayerPicker
+              value={values.chessLayerCategoryId}
+              onChange={(id) => update('chessLayerCategoryId', id)}
+            />
+            <div>
+              <label className="block text-sm font-medium text-ink">Priority</label>
+              <select
+                value={values.priorityRank}
+                onChange={(e) => update('priorityRank', Number(e.target.value))}
+                className="mt-1 w-full rounded-md border border-border bg-white px-3 py-2 text-sm focus:border-claude-400 focus:ring-1 focus:ring-claude-400/25"
+              >
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <option key={n} value={n}>
+                    P{n}{n === 1 ? ' — critical' : n <= 2 ? ' — high' : n <= 4 ? '' : ' — low'}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </CardBody>
-        <CardFooter>
+        <CardFooter className="sticky bottom-0 border-t border-border bg-white">
           <Button type="button" variant="ghost" onClick={onCancel}>
             Cancel
           </Button>

@@ -187,7 +187,7 @@ const statusActive: Record<'DELIVERED' | 'PARTIAL' | 'MISSED', string> = {
 };
 
 function labelFor(s: 'DELIVERED' | 'PARTIAL' | 'MISSED'): string {
-  return s === 'DELIVERED' ? 'Delivered' : s === 'PARTIAL' ? 'Partial' : 'Missed';
+  return s === 'DELIVERED' ? 'Hit' : s === 'PARTIAL' ? 'Partial' : 'Miss';
 }
 
 const carryLabel: Record<'DROP' | 'FINISHED_NEXT_WEEK' | 'CARRY_FORWARD', string> = {
