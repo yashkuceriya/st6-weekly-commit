@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGetRollupHistoryQuery, useGetTeamExceptionsQuery } from '@st6/api-client';
 import { Card, CardBody, EmptyState, SectionHeader, Spinner } from '@st6/shared-ui';
 import { ExceptionCardView } from '../components/ExceptionCardView';
@@ -23,9 +24,13 @@ export function ManagerQueuePage() {
     weeks: 8,
   });
 
+  const navigate = useNavigate();
   const handleDismiss = useCallback((id: string) => {
     setDismissedIds((prev) => new Set(prev).add(id));
   }, []);
+  const handleNavigate = useCallback((path: string) => {
+    navigate(path);
+  }, [navigate]);
 
   if (isLoading) {
     return (
@@ -70,7 +75,7 @@ export function ManagerQueuePage() {
       ) : (
         <div className="space-y-3">
           {cards.map((card) => (
-            <ExceptionCardView key={card.id} card={card} onDismiss={handleDismiss} />
+            <ExceptionCardView key={card.id} card={card} onDismiss={handleDismiss} onNavigate={handleNavigate} />
           ))}
         </div>
       )}

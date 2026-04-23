@@ -5,6 +5,7 @@ import { Card, CardBody, cn } from '@st6/shared-ui';
 interface ExceptionCardViewProps {
   card: ExceptionCard;
   onDismiss?: (id: string) => void;
+  onNavigate?: (path: string) => void;
 }
 
 const severityStyles: Record<string, string> = {
@@ -13,44 +14,29 @@ const severityStyles: Record<string, string> = {
   critical: 'border-danger/40 bg-danger-subtle/40',
 };
 
-function feedbackLabelFor(type: string): string {
-  switch (type) {
-    case 'OVERDUE_LOCK':
-      return 'Sent!';
-    case 'PENDING_REVIEW_SLA':
-      return 'Opening...';
-    case 'REPEATED_CARRY_FORWARD':
-      return 'Done!';
-    case 'OUTCOME_COVERAGE_GAP':
-      return 'Opened!';
-    case 'BLOCKED_HIGH_PRIORITY':
-      return 'Opened!';
-    default:
-      return 'Done!';
-  }
-}
-
-export function ExceptionCardView({ card, onDismiss }: ExceptionCardViewProps) {
-  const [clicked, setClicked] = useState(false);
+export function ExceptionCardView({ card, onDismiss, onNavigate }: ExceptionCardViewProps) {
+  const [dismissed, setDismissed] = useState(false);
 
   const handleAction = useCallback(() => {
-    setClicked(true);
-    // Show feedback for 1.2s, THEN dismiss
-    setTimeout(() => {
-      onDismiss?.(card.id);
-    }, 1200);
-  }, [card.id, onDismiss]);
+    const action = actionFor(card.type);
+    if (action.navigate && onNavigate) {
+      onNavigate(action.navigate);
+      return;
+    }
+    // Dismiss actions: fade out then remove
+    setDismissed(true);
+    setTimeout(() => onDismiss?.(card.id), 600);
+  }, [card.id, card.type, onDismiss, onNavigate]);
 
   return (
     <Card className={cn(
       'transition-all duration-500',
       severityStyles[card.severity] ?? severityStyles.info,
-      clicked && 'scale-[0.98] opacity-60',
+      dismissed && 'translate-x-4 scale-[0.97] opacity-0',
     )}>
       <CardBody className="space-y-2">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
-            {/* Avatar */}
             <div className={cn(
               'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white',
               card.severity === 'critical' ? 'bg-danger' : card.severity === 'warning' ? 'bg-warning' : 'bg-ink-muted',
@@ -67,18 +53,13 @@ export function ExceptionCardView({ card, onDismiss }: ExceptionCardViewProps) {
           <button
             type="button"
             onClick={handleAction}
-            disabled={clicked}
-            className={cn(
-              'rounded-md border px-3 py-1.5 text-xs font-medium transition-colors',
-              clicked
-                ? 'border-success/40 bg-success-subtle text-success'
-                : 'border-border bg-white text-ink-soft hover:bg-cream-100',
-            )}
+            disabled={dismissed}
+            className="shrink-0 rounded-md border border-border bg-white px-3 py-1.5 text-xs font-medium text-ink-soft transition-colors hover:bg-cream-100 hover:text-ink"
           >
-            {clicked ? feedbackLabelFor(card.type) : actionLabelFor(card.type)}
+            {actionFor(card.type).label}
           </button>
         </div>
-        <p className="text-sm text-ink-muted">{descriptionFor(card)}</p>
+        <p className="ml-12 text-sm text-ink-muted">{descriptionFor(card)}</p>
       </CardBody>
     </Card>
   );
@@ -110,28 +91,28 @@ function descriptionFor(card: ExceptionCard): string {
     case 'PENDING_REVIEW_SLA':
       return `${card.hoursPending}h past the 48h review SLA.`;
     case 'REPEATED_CARRY_FORWARD':
-      return `Manager acknowledgement required from generation 3 onward. Walk back the chain to the original commit.`;
+      return `Manager acknowledgement required from generation 3 onward.`;
     case 'OUTCOME_COVERAGE_GAP':
       return `${card.weeksUncovered} week(s) without team commits against this outcome.`;
     case 'BLOCKED_HIGH_PRIORITY':
-      return `Delta reason: "${card.deltaReason}".`;
+      return `Delta: "${card.deltaReason}".`;
   }
 }
 
-function actionLabelFor(type: string): string {
+function actionFor(type: string): { label: string; navigate?: string } {
   switch (type) {
     case 'OVERDUE_LOCK':
-      return 'Nudge';
+      return { label: 'Nudge' };
     case 'PENDING_REVIEW_SLA':
-      return 'Review';
+      return { label: 'Review', navigate: '/me' };
     case 'REPEATED_CARRY_FORWARD':
-      return 'Acknowledge';
+      return { label: 'Acknowledge' };
     case 'OUTCOME_COVERAGE_GAP':
-      return 'Open outcome';
+      return { label: 'Acknowledge' };
     case 'BLOCKED_HIGH_PRIORITY':
-      return 'View';
+      return { label: 'View', navigate: '/me' };
     default:
-      return 'Open';
+      return { label: 'Dismiss' };
   }
 }
 
