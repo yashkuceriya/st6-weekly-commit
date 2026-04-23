@@ -27,6 +27,7 @@ function Shell() {
   const location = useLocation();
   const isTeam = location.pathname.startsWith('/team');
   const isReconcile = location.pathname.includes('/reconcile');
+  const isStrategy = location.pathname.startsWith('/strategy');
 
   return (
     <div className="flex min-h-screen flex-col bg-cream-50">
@@ -50,7 +51,7 @@ function Shell() {
               to="/me"
               className={cn(
                 'rounded-md px-4 py-1.5 text-sm font-medium transition-colors',
-                !isTeam && !isReconcile
+                !isTeam && !isReconcile && !isStrategy
                   ? 'bg-cream-100 text-ink'
                   : 'text-ink-muted hover:text-ink',
               )}
@@ -78,6 +79,17 @@ function Shell() {
               )}
             >
               Team
+            </NavLink>
+            <NavLink
+              to="/strategy"
+              className={cn(
+                'rounded-md px-4 py-1.5 text-sm font-medium transition-colors',
+                isStrategy
+                  ? 'bg-cream-100 text-ink'
+                  : 'text-ink-muted hover:text-ink',
+              )}
+            >
+              Strategy
             </NavLink>
           </nav>
 

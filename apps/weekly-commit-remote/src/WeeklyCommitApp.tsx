@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { PlannerPage } from './pages/PlannerPage';
 import { ReconciliationPage } from './pages/ReconciliationPage';
 import { ManagerQueuePage } from './pages/ManagerQueuePage';
+import { StrategyPage } from './pages/StrategyPage';
 
 export interface WeeklyCommitAppProps {
   /** Base path under which the remote's internal router operates. */
@@ -19,6 +20,7 @@ export default function WeeklyCommitApp(_props: WeeklyCommitAppProps) {
       <Route path="me" element={<PlannerPage />} />
       <Route path="me/reconcile" element={<ReconciliationPage />} />
       <Route path="team" element={<ManagerQueuePage />} />
+      <Route path="strategy" element={<StrategyPage />} />
       <Route path="*" element={<Navigate to="me" replace />} />
     </Routes>
   );
