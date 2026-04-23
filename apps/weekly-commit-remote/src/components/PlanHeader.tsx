@@ -9,6 +9,7 @@ interface PlanHeaderProps {
   plan: WeeklyPlan;
   readiness: LockReadiness;
   onLock: () => void;
+  onNewWeek?: () => void;
   locking?: boolean;
 }
 
@@ -21,7 +22,7 @@ function formatWeekTitle(weekStart: string): string {
   return `Week of ${fmtShort.format(start)} – ${fmt.format(end)}`;
 }
 
-export function PlanHeader({ plan, readiness, onLock, locking }: PlanHeaderProps) {
+export function PlanHeader({ plan, readiness, onLock, onNewWeek, locking }: PlanHeaderProps) {
   const isDraft = plan.state === 'DRAFT';
   return (
     <div className="space-y-2">
@@ -48,14 +49,19 @@ export function PlanHeader({ plan, readiness, onLock, locking }: PlanHeaderProps
               <Button>Continue reconciliation</Button>
             </Link>
           )}
+          {plan.state === 'RECONCILED' && onNewWeek && (
+            <Button onClick={onNewWeek}>Start next week →</Button>
+          )}
         </div>
       </div>
       <p className="text-sm italic text-ink-muted">
         {isDraft
           ? 'Lock your week by Monday 10am. Every commit must link to a Supporting Outcome.'
-          : plan.reconciledAt
-            ? `Reconciled at ${formatTimestamp(plan.reconciledAt)}`
-            : `Locked at ${formatTimestamp(plan.lockedAt)}`}
+          : plan.state === 'RECONCILED'
+            ? 'This week is closed. Carry-forward items will seed your next plan.'
+            : plan.state === 'RECONCILING'
+              ? 'Mark each commit as Hit, Partial, or Miss before submitting.'
+              : `Locked at ${formatTimestamp(plan.lockedAt)}. Head to Reconcile when ready.`}
       </p>
     </div>
   );

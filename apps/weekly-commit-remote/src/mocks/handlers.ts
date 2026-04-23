@@ -601,7 +601,9 @@ export const handlers = [
   http.post('/api/plans', async ({ request }) => {
     const body = (await request.json()) as { weekStartDate: string };
     planState = 'DRAFT';
-    return HttpResponse.json({ ...buildPlan(), weekStartDate: body.weekStartDate }, { status: 201 });
+    planVersion = 1;
+    commits = [];
+    return HttpResponse.json({ ...buildPlan(), weekStartDate: body.weekStartDate, commits: [] }, { status: 201 });
   }),
 
   http.post('/api/plans/:id/lock', () => {

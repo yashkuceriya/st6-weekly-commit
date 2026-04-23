@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   useAddCommitMutation,
+  useCreatePlanMutation,
   useDeleteCommitMutation,
   useGetChessLayersQuery,
   useGetCurrentPlanQuery,
@@ -36,6 +37,7 @@ export function PlannerPage() {
   const [updateCommit] = useUpdateCommitMutation();
   const [deleteCommit] = useDeleteCommitMutation();
   const [lockPlan, { isLoading: locking }] = useLockPlanMutation();
+  const [createPlan] = useCreatePlanMutation();
 
   const [editing, setEditing] = useState<WeeklyCommit | null>(null);
   const [adding, setAdding] = useState(false);
@@ -120,6 +122,15 @@ export function PlannerPage() {
     }
   }
 
+  async function handleNewWeek() {
+    const d = new Date();
+    const day = d.getDay();
+    const offset = day === 0 ? 1 : 8 - day;
+    d.setDate(d.getDate() + offset);
+    const nextMonday = d.toISOString().slice(0, 10);
+    await createPlan({ weekStartDate: nextMonday }).unwrap();
+  }
+
   async function handleDrop(targetIndex: number) {
     if (dragIndex == null || dragIndex === targetIndex || !isDraft) {
       setDragIndex(null);
@@ -164,7 +175,7 @@ export function PlannerPage() {
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
       {/* ─── Left column: commits ─── */}
       <div className="space-y-6">
-        <PlanHeader plan={plan} readiness={readiness} onLock={handleLock} locking={locking} />
+        <PlanHeader plan={plan} readiness={readiness} onLock={handleLock} onNewWeek={handleNewWeek} locking={locking} />
 
         {serverErrors && (
           <div className="rounded-md border border-danger/30 bg-danger-subtle px-4 py-3 text-sm text-danger">
