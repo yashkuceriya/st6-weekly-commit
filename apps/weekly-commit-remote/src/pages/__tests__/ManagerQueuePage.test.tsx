@@ -174,20 +174,22 @@ describe('ManagerQueuePage', () => {
 
     render(<ManagerQueuePage />);
 
-    // RollupBar renders metric labels
+    // RollupBar renders metric labels (use getAllByText where TeamRollupCards
+    // may also render matching text like "Locked" status badges)
     expect(screen.getByText('Aligned')).toBeInTheDocument();
-    expect(screen.getByText('Locked')).toBeInTheDocument();
+    expect(screen.getAllByText('Locked').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Delivered')).toBeInTheDocument();
     expect(screen.getByText('Review SLA')).toBeInTheDocument();
     expect(screen.getByText('Carry-fwd')).toBeInTheDocument();
     expect(screen.getByText('Time-to-plan')).toBeInTheDocument();
 
-    // Metric values
-    expect(screen.getByText('92%')).toBeInTheDocument();
-    expect(screen.getByText('100%')).toBeInTheDocument();
-    expect(screen.getByText('83%')).toBeInTheDocument();
-    expect(screen.getByText('95%')).toBeInTheDocument();
-    expect(screen.getByText('12%')).toBeInTheDocument();
+    // Metric values (use getAllByText for values that may appear in multiple
+    // components, e.g. "100%" in RollupBar and TeamRollupCards member stats)
+    expect(screen.getAllByText('92%').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('100%').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('83%').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('95%').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('12%').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('18m')).toBeInTheDocument();
   });
 

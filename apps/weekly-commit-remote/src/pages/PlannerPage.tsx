@@ -46,11 +46,28 @@ export function PlannerPage() {
   const [serverErrors, setServerErrors] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [chessFilter, setChessFilter] = useState<string | null>(null);
 
   const readiness = useMemo(() => (plan ? evaluateLockReadiness(plan) : null), [plan]);
   const pathsByOutcome = useMemo(() => buildPathIndex(tree ?? []), [tree]);
 
   const activeCommits = useMemo(() => plan?.commits.filter((c) => c.active) ?? [], [plan]);
+
+  const filteredCommits = useMemo(() => {
+    if (!chessFilter) return activeCommits;
+    return activeCommits.filter((c) => c.chessLayerCategoryId === chessFilter);
+  }, [activeCommits, chessFilter]);
+
+  // Count commits per chess layer for filter tabs
+  const chessFilterCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const c of activeCommits) {
+      if (c.chessLayerCategoryId) {
+        counts[c.chessLayerCategoryId] = (counts[c.chessLayerCategoryId] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }, [activeCommits]);
 
   // Chess layer distribution for summary bar — must be before early returns (Rules of Hooks)
   const chessDistribution = useMemo(() => {
@@ -185,6 +202,49 @@ export function PlannerPage() {
           </div>
         )}
 
+        {/* Chess layer filter tabs */}
+        {chessLayers && chessLayers.length > 0 && activeCommits.length > 0 && (
+          <div className="flex gap-1 overflow-x-auto rounded-lg bg-cream-50 p-1" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={chessFilter === null}
+              onClick={() => setChessFilter(null)}
+              className={cn(
+                'rounded-md px-3 py-1.5 font-mono text-xs font-medium uppercase tracking-wider transition-colors',
+                chessFilter === null
+                  ? 'bg-white text-ink shadow-soft'
+                  : 'text-ink-muted hover:text-ink-soft',
+              )}
+              style={chessFilter === null ? { borderBottom: '2px solid #D4603A' } : undefined}
+            >
+              All ({activeCommits.length})
+            </button>
+            {chessLayers.map((cl) => {
+              const count = chessFilterCounts[cl.id] ?? 0;
+              const isActive = chessFilter === cl.id;
+              return (
+                <button
+                  key={cl.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setChessFilter(isActive ? null : cl.id)}
+                  className={cn(
+                    'rounded-md px-3 py-1.5 font-mono text-xs font-medium uppercase tracking-wider transition-colors',
+                    isActive
+                      ? 'bg-white text-ink shadow-soft'
+                      : 'text-ink-muted hover:text-ink-soft',
+                  )}
+                  style={isActive ? { borderBottom: `2px solid ${cl.color}` } : undefined}
+                >
+                  {cl.name} ({count})
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {activeCommits.length === 0 ? (
           <EmptyState
             icon={
@@ -200,25 +260,27 @@ export function PlannerPage() {
           />
         ) : (
           <div className="space-y-4">
-            {activeCommits.map((commit, idx) => (
+            {filteredCommits.map((commit, idx) => (
               <div
                 key={commit.id}
-                draggable={isDraft}
+                draggable={isDraft && !chessFilter}
                 onDragStart={(e) => {
+                  if (chessFilter) return;
                   setDragIndex(idx);
                   e.dataTransfer.effectAllowed = 'move';
                 }}
                 onDragOver={(e) => {
+                  if (chessFilter) return;
                   e.preventDefault();
                   setDragOverIndex(idx);
                 }}
                 onDragLeave={() => setDragOverIndex((prev) => (prev === idx ? null : prev))}
-                onDrop={() => handleDrop(idx)}
+                onDrop={() => { if (!chessFilter) handleDrop(idx); }}
                 className={cn(
                   'transition-transform',
                   dragIndex === idx && 'opacity-40',
                   dragOverIndex === idx && dragIndex !== idx && 'ring-2 ring-claude-300 ring-offset-2',
-                  isDraft && 'cursor-move',
+                  isDraft && !chessFilter && 'cursor-move',
                 )}
               >
                 <CommitCard

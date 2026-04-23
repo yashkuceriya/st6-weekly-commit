@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useGetRollupHistoryQuery, useGetTeamExceptionsQuery } from '@st6/api-client';
 import { Card, CardBody, EmptyState, SectionHeader, Spinner } from '@st6/shared-ui';
 import { ExceptionCardView } from '../components/ExceptionCardView';
+import { RCDODistribution } from '../components/RCDODistribution';
 import { RollupBar } from '../components/RollupBar';
+import { TeamRollupCards } from '../components/TeamRollupCards';
 import { currentWeekStartIso, formatWeekRange } from '../lib/format';
 
 // Seeded Engineering team — see V9__seed.sql.
@@ -62,6 +64,10 @@ export function ManagerQueuePage() {
       />
 
       <RollupBar rollup={data.rollup} history={history} />
+
+      <RCDODistribution />
+
+      <TeamRollupCards />
 
       {cards.length === 0 ? (
         <Card variant="soft">
