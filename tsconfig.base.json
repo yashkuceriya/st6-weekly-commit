@@ -1,0 +1,51 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "bundler",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": false,
+    "useUnknownInCatchVariables": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "paths": {
+      "@st6/shared-types": ["libs/shared-types/src/index.ts"],
+      "@st6/shared-types/*": ["libs/shared-types/src/*"],
+      "@st6/shared-ui": ["libs/shared-ui/src/index.ts"],
+      "@st6/shared-ui/*": ["libs/shared-ui/src/*"],
+      "@st6/api-client": ["libs/api-client/src/index.ts"],
+      "@st6/api-client/*": ["libs/api-client/src/*"]
+    }
+  },
+  "exclude": ["node_modules", "tmp", "dist", "build"]
+}

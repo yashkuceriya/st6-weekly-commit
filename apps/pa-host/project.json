@@ -1,0 +1,14 @@
+{
+  "name": "pa-host",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/pa-host/src",
+  "projectType": "application",
+  "tags": ["scope:pa-host"],
+  "targets": {
+    "serve": { "executor": "nx:run-script", "options": { "script": "serve" } },
+    "build": { "executor": "nx:run-script", "options": { "script": "build" } },
+    "lint": { "executor": "nx:run-script", "options": { "script": "lint" } },
+    "typecheck": { "executor": "nx:run-script", "options": { "script": "typecheck" } },
+    "test": { "executor": "nx:run-script", "options": { "script": "test" } }
+  }
+}

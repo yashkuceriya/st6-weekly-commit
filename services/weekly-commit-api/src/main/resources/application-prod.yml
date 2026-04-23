@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+    hikari:
+      maximum-pool-size: 30
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+    open-in-view: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH0_ISSUER}
+          audiences: ${AUTH0_AUDIENCE}
+
+st6:
+  outlook:
+    enabled: ${OUTLOOK_ENABLED:false}
+
+logging:
+  level:
+    root: INFO
+    com.st6.weeklycommit: INFO

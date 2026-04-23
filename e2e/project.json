@@ -1,0 +1,13 @@
+{
+  "name": "e2e",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "e2e/cypress",
+  "projectType": "application",
+  "tags": ["scope:e2e"],
+  "implicitDependencies": ["pa-host", "weekly-commit-remote"],
+  "targets": {
+    "e2e": { "executor": "nx:run-script", "options": { "script": "e2e" } },
+    "lint": { "executor": "nx:run-script", "options": { "script": "lint" } },
+    "typecheck": { "executor": "nx:run-script", "options": { "script": "typecheck" } }
+  }
+}

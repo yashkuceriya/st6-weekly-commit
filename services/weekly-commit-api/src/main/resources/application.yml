@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: weekly-commit-api
+  profiles:
+    default: dev
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+  forward-headers-strategy: framework
+  shutdown: graceful
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/plain
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      service: ${spring.application.name}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+
+st6:
+  outlook:
+    enabled: false
+    tenant-id: ${OUTLOOK_TENANT_ID:}
+    client-id: ${OUTLOOK_CLIENT_ID:}
+    client-secret: ${OUTLOOK_CLIENT_SECRET:}
+    sender-upn: ${OUTLOOK_SENDER_UPN:notifications@st6.local}
+  ai:
+    enabled: false
+  outbox:
+    # Milliseconds. Spring's @Scheduled(fixedDelayString=…) takes a raw long.
+    poll-interval: 5000
+    batch-size: 100
+  sla:
+    lock-due-day-of-week: TUESDAY
+    lock-due-hour: 17
+    review-due-hours: 48

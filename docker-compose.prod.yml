@@ -1,0 +1,66 @@
+# Production-shaped docker-compose stack.
+#
+# One command, one machine, full stack:
+#   docker compose -f docker-compose.prod.yml up --build
+#
+# Matches the architectural story in CLAUDE.md — backend, host, remote are
+# independent services, each scalable independently. For real prod this
+# compose file is a reference; the actual deploy targets are EKS + CloudFront
+# for the host/remote bundles and ECS/EKS for the API. See DEPLOY.md.
+
+services:
+  postgres:
+    image: postgres:16.4-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: weekly_commit
+      POSTGRES_USER: weekly_commit
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-in-prod}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infra/postgres-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U weekly_commit -d weekly_commit']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  weekly-commit-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DATASOURCE_URL: jdbc:postgresql://postgres:5432/weekly_commit
+      DATASOURCE_USERNAME: weekly_commit
+      DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-change-me-in-prod}
+      AUTH0_ISSUER: ${AUTH0_ISSUER:-}
+      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE:-}
+      OUTLOOK_ENABLED: ${OUTLOOK_ENABLED:-false}
+      OUTLOOK_TENANT_ID: ${OUTLOOK_TENANT_ID:-}
+      OUTLOOK_CLIENT_ID: ${OUTLOOK_CLIENT_ID:-}
+      OUTLOOK_CLIENT_SECRET: ${OUTLOOK_CLIENT_SECRET:-}
+
+  weekly-commit-remote:
+    build:
+      context: .
+      dockerfile: Dockerfile.remote
+    restart: unless-stopped
+
+  pa-host:
+    build:
+      context: .
+      dockerfile: Dockerfile.host
+    restart: unless-stopped
+    depends_on:
+      - weekly-commit-api
+      - weekly-commit-remote
+    ports:
+      - '${PA_HOST_PORT:-4200}:8080'
+
+volumes:
+  postgres-data:

@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    # Backend tests connect to the running infra/docker-compose postgres at
+    # port 5433 — see VERIFY.md. We deliberately don't use Testcontainers:
+    # docker-java's auto-discovery is fragile against newer Docker Desktop API
+    # versions and the docker-compose stack is what the user runs anyway.
+    url: ${TEST_DATASOURCE_URL:jdbc:postgresql://localhost:5433/weekly_commit_test}
+    driver-class-name: org.postgresql.Driver
+    username: ${TEST_DATASOURCE_USERNAME:weekly_commit}
+    password: ${TEST_DATASOURCE_PASSWORD:weekly_commit}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    clean-disabled: false
+
+st6:
+  outlook:
+    enabled: false
+  outbox:
+    poll-interval: 60000
+
+logging:
+  level:
+    root: WARN
+    com.st6.weeklycommit: INFO

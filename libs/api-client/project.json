@@ -1,0 +1,12 @@
+{
+  "name": "api-client",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/api-client/src",
+  "projectType": "library",
+  "tags": ["scope:api-client"],
+  "targets": {
+    "lint": { "executor": "nx:run-script", "options": { "script": "lint" } },
+    "typecheck": { "executor": "nx:run-script", "options": { "script": "typecheck" } },
+    "test": { "executor": "nx:run-script", "options": { "script": "test" } }
+  }
+}

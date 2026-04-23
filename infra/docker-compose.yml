@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:16.4-alpine
+    container_name: st6-wc-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: weekly_commit
+      POSTGRES_USER: weekly_commit
+      POSTGRES_PASSWORD: weekly_commit
+    ports:
+      # 5433 (not 5432) to avoid conflict with any other postgres on the host.
+      - '5433:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./postgres-test-init.sql:/docker-entrypoint-initdb.d/02-test-db.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U weekly_commit -d weekly_commit']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  localstack:
+    image: localstack/localstack:3.8
+    container_name: st6-wc-localstack
+    restart: unless-stopped
+    environment:
+      SERVICES: sns,sqs
+      DEBUG: 0
+      DOCKER_HOST: unix:///var/run/docker.sock
+    ports:
+      - '4566:4566'
+    volumes:
+      - localstack-data:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4566/_localstack/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: st6-wc-mailhog
+    restart: unless-stopped
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+
+volumes:
+  postgres-data:
+  localstack-data:

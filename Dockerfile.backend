@@ -1,0 +1,48 @@
+# ──────────────────────────────────────────────────────────────────────────
+# Backend (Spring Boot + Java 21) — multi-stage build
+#
+# Build stage: gradle 9 on JDK 25, but uses the toolchain to compile with 21.
+# Runtime stage: eclipse-temurin:21-jre-alpine, ~200MB final image.
+# ──────────────────────────────────────────────────────────────────────────
+
+FROM eclipse-temurin:21-jdk-alpine AS build
+WORKDIR /workspace
+
+# Leverage the Gradle wrapper for reproducible builds across environments.
+# Copy minimal files first so gradle dependency resolution can cache.
+COPY services/weekly-commit-api/gradle ./gradle
+COPY services/weekly-commit-api/gradlew ./gradlew
+COPY services/weekly-commit-api/gradle.properties ./gradle.properties
+COPY services/weekly-commit-api/settings.gradle.kts ./settings.gradle.kts
+COPY services/weekly-commit-api/build.gradle.kts ./build.gradle.kts
+COPY services/weekly-commit-api/config ./config
+RUN chmod +x ./gradlew
+
+# Pre-warm the dependency cache.
+RUN ./gradlew --no-daemon dependencies >/dev/null 2>&1 || true
+
+COPY services/weekly-commit-api/src ./src
+RUN ./gradlew --no-daemon bootJar -x test
+
+# ──────────────────────────────────────────────────────────────────────────
+
+FROM eclipse-temurin:21-jre-alpine AS runtime
+
+# Create a non-root user to run the app.
+RUN addgroup -S st6 && adduser -S -G st6 st6
+
+WORKDIR /app
+COPY --from=build /workspace/build/libs/*.jar /app/app.jar
+
+# Healthcheck pings Actuator's liveness endpoint.
+HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=5 \
+  CMD wget -qO- http://127.0.0.1:8080/api/actuator/health/liveness || exit 1
+
+USER st6
+
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError"
+ENV SPRING_PROFILES_ACTIVE=prod
+
+EXPOSE 8080
+
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]

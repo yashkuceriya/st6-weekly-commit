@@ -1,0 +1,26 @@
+{
+  "_meta": {
+    "description": "Golden snapshot of seed data shape (V9__seed.sql). Contract test: if these counts change, V9 changed — bump this file deliberately so the diff is reviewed.",
+    "lastUpdated": "2026-04-22"
+  },
+  "teams": 2,
+  "users": {
+    "total": 16,
+    "admins": 1,
+    "managers": 3,
+    "ics": 12,
+    "devFallback": 1
+  },
+  "chessLayers": {
+    "total": 4,
+    "default": "Offense",
+    "names": ["Offense", "Defense", "Maintenance", "Discovery"]
+  },
+  "strategicHierarchy": {
+    "rallyCries": 1,
+    "definingObjectives": 4,
+    "outcomes": 12,
+    "supportingOutcomes": 30,
+    "totalNodes": 47
+  }
+}

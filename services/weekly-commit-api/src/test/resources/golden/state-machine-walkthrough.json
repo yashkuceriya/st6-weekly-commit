@@ -1,0 +1,61 @@
+{
+  "_meta": {
+    "description": "Golden walk-through of the full plan lifecycle — input commits, expected post-state shape, expected events. The goldenLifecycleWalkthrough test reproduces this exactly. If the test fails, either the system changed (update this file deliberately) or there's a regression."
+  },
+  "scenario": "ic-locks-and-reconciles-with-one-carry-forward",
+  "steps": [
+    {
+      "name": "create-plan",
+      "expect": { "state": "DRAFT", "commitCount": 0 }
+    },
+    {
+      "name": "add-commit-1-aligned",
+      "input": { "title": "Ship outbound campaign", "outcomeKey": "OUTCOME_1", "chessKey": "OFFENSE", "evidence": "first batch sent" },
+      "expect": { "commitCount": 1 }
+    },
+    {
+      "name": "add-commit-2-aligned",
+      "input": { "title": "Lock-by-Tuesday nudge", "outcomeKey": "OUTCOME_2", "chessKey": "OFFENSE", "evidence": "experiment deployed" },
+      "expect": { "commitCount": 2 }
+    },
+    {
+      "name": "lock",
+      "expect": {
+        "state": "LOCKED",
+        "lockedAtNotNull": true,
+        "everyCommitHasSnapshotPath": true,
+        "expectedEvent": "PLAN_LOCKED"
+      }
+    },
+    {
+      "name": "start-reconciliation",
+      "expect": { "state": "RECONCILING" }
+    },
+    {
+      "name": "reconcile",
+      "input": [
+        { "ref": "commit-1", "status": "DELIVERED" },
+        { "ref": "commit-2", "status": "PARTIAL", "actualOutcome": "Got halfway", "deltaReason": "vendor delays", "carryDecision": "CARRY_FORWARD", "carryRationale": "Vendor confirmed sending capacity returns Monday and the test is still meaningful." }
+      ],
+      "expect": {
+        "state": "RECONCILED",
+        "reconciledAtNotNull": true,
+        "expectedEvent": "PLAN_RECONCILED",
+        "carryForwardCount": 1,
+        "nextWeekPlanCreated": true,
+        "nextWeekChildCommit": {
+          "carryGeneration": 2,
+          "sourceCommitRef": "commit-2",
+          "title": "Lock-by-Tuesday nudge"
+        }
+      }
+    }
+  ],
+  "invariantsThatMustHold": [
+    "stateNeverRegresses",
+    "versionMonotonicallyIncreases",
+    "lockedSnapshotPresentIffStateGteLOCKED",
+    "carryForwardChildHasGenerationOneHigherThanSource",
+    "outboxEventWrittenForEveryStateTransition"
+  ]
+}

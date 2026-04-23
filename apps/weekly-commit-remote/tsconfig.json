@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "types": ["node", "vite/client", "vitest/globals", "@testing-library/jest-dom"],
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

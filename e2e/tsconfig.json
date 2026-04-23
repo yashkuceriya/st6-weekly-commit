@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "./cypress",
+    "types": ["cypress", "node", "@badeball/cypress-cucumber-preprocessor"],
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "isolatedModules": false
+  },
+  "include": ["cypress/**/*", "cypress.config.ts"]
+}

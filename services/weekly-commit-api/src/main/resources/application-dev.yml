@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/weekly_commit
+    username: weekly_commit
+    password: weekly_commit
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 5000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+    open-in-view: false
+    show-sql: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Dev profile bypasses real Auth0 — see DevSecurityConfig.
+          # When VITE_AUTH0_DOMAIN is set in prod, switch to:
+          # issuer-uri: https://your-tenant.auth0.com/
+          issuer-uri: ${AUTH0_ISSUER:}
+
+st6:
+  outlook:
+    enabled: false # logs only, no real send
+
+logging:
+  level:
+    root: INFO
+    com.st6.weeklycommit: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: WARN

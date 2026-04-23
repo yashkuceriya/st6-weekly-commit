@@ -1,0 +1,10 @@
+node_modules
+dist
+build
+.nx
+coverage
+**/build/
+**/.gradle/
+yarn.lock
+package-lock.json
+**/db/migration/*.sql

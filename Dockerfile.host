@@ -1,0 +1,45 @@
+# ──────────────────────────────────────────────────────────────────────────
+# PA host frontend — builds and serves via nginx
+#
+# Build stage produces /apps/pa-host/dist. Runtime stage serves via nginx
+# with Vite's stale-chunk-safe caching headers (HTML no-cache, chunks
+# long-cache with content hashing — see apps/pa-host/src/stale-chunk.ts).
+#
+# The remote bundle is expected at /remotes/weekly-commit/ — bind-mount it
+# from the remote container via the nginx proxy in docker-compose.prod.yml,
+# or point WEEKLY_COMMIT_REMOTE_URL at a CDN at build time.
+# ──────────────────────────────────────────────────────────────────────────
+
+FROM node:20.11-alpine AS build
+WORKDIR /workspace
+
+# Corepack-less yarn install path: ship yarn globally.
+RUN npm install -g yarn@1.22.22
+
+# Copy the whole monorepo because Nx-style path aliases resolve across
+# workspaces; no cheap "copy just this app" shortcut exists.
+COPY package.json yarn.lock nx.json tsconfig.base.json eslint.config.js .prettierrc ./
+COPY apps ./apps
+COPY libs ./libs
+COPY e2e ./e2e
+
+RUN yarn install --frozen-lockfile
+
+ARG WEEKLY_COMMIT_REMOTE_URL=/remotes/weekly-commit/assets/remoteEntry.js
+ARG VITE_API_BASE_URL=/api
+ENV WEEKLY_COMMIT_REMOTE_URL=${WEEKLY_COMMIT_REMOTE_URL}
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+
+RUN yarn workspace pa-host build
+
+# ──────────────────────────────────────────────────────────────────────────
+
+FROM nginx:1.27-alpine AS runtime
+
+COPY --from=build /workspace/apps/pa-host/dist /usr/share/nginx/html
+COPY infra/nginx/host.conf /etc/nginx/conf.d/default.conf
+
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:8080/healthz || exit 1
+
+EXPOSE 8080

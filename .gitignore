@@ -1,0 +1,75 @@
+# Dependencies
+node_modules/
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Build output
+dist/
+build/
+out/
+.next/
+.nx/cache
+.nx/workspace-data
+*.tsbuildinfo
+
+# Java / Gradle
+.gradle/
+**/build/
+!src/**/build/
+out/
+bin/
+.classpath
+.project
+.settings/
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+.DS_Store
+
+# Env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test
+coverage/
+.nyc_output/
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+playwright-report/
+test-results/
+
+# OS
+Thumbs.db
+
+# Local data
+data/
+*.local
+
+# Claude Code local IDE settings (machine-specific)
+.claude/settings.local.json
+
+# Tool-compiled artifacts sitting next to TS configs
+**/vite.config.js
+**/vite.config.js.map
+**/*.config.d.ts

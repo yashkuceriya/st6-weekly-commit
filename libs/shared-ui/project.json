@@ -1,0 +1,21 @@
+{
+  "name": "shared-ui",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared-ui/src",
+  "projectType": "library",
+  "tags": ["scope:shared-ui"],
+  "targets": {
+    "lint": {
+      "executor": "nx:run-script",
+      "options": { "script": "lint" }
+    },
+    "typecheck": {
+      "executor": "nx:run-script",
+      "options": { "script": "typecheck" }
+    },
+    "test": {
+      "executor": "nx:run-script",
+      "options": { "script": "test" }
+    }
+  }
+}

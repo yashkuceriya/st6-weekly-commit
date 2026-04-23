@@ -1,0 +1,54 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Breadcrumb (golden) > snapshot — three-segment path renders consistently 1`] = `
+<nav
+  aria-label="Strategic alignment path"
+  class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs"
+>
+  <span
+    class="rounded-sm px-1.5 py-0.5 font-mono text-[0.65rem] font-semibold uppercase tracking-wide bg-claude-100 text-claude-700"
+    title="rally cry"
+  >
+    RC
+  </span>
+  <span
+    class="text-ink-soft"
+  >
+    Win Q2 in mid-market
+  </span>
+  <span
+    aria-hidden="true"
+    class="text-ink-subtle"
+  >
+    ›
+  </span>
+  <span
+    class="rounded-sm px-1.5 py-0.5 font-mono text-[0.65rem] font-semibold uppercase tracking-wide bg-cream-200 text-ink-soft"
+    title="defining objective"
+  >
+    DO
+  </span>
+  <span
+    class="text-ink-soft"
+  >
+    Activate 50 mid-market accounts
+  </span>
+  <span
+    aria-hidden="true"
+    class="text-ink-subtle"
+  >
+    ›
+  </span>
+  <span
+    class="rounded-sm px-1.5 py-0.5 font-mono text-[0.65rem] font-semibold uppercase tracking-wide bg-cream-100 text-ink-muted"
+    title="outcome"
+  >
+    O
+  </span>
+  <span
+    class="text-ink-soft"
+  >
+    Sales pipeline: 200 qualified opps
+  </span>
+</nav>
+`;

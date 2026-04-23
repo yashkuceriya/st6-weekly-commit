@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`StatusBadge (golden) > snapshot — locked badge 1`] = `
+<span
+  class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium bg-claude-100 text-claude-700 border-claude-200"
+>
+  <span
+    class="h-1.5 w-1.5 rounded-full bg-claude-500"
+  />
+  Locked
+</span>
+`;

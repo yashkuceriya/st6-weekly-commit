@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "types": ["node", "vite/client", "vitest/globals"],
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler"
+  },
+  "include": ["src/**/*", "src/types/remotes.d.ts"],
+  "exclude": ["node_modules", "dist"]
+}
