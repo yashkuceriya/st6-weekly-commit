@@ -44,20 +44,20 @@ function makeRollup(overrides: Partial<TeamWeekRollup> = {}): TeamWeekRollup {
   };
 }
 
-function makeException(overrides: Partial<ExceptionCard> & { type: ExceptionCard['type'] }): ExceptionCard {
+function makeException(type: ExceptionCard['type'], overrides?: Partial<ExceptionCard>): ExceptionCard {
   const base = {
     id: 'exc-1',
+    type,
     detectedAt: '2026-04-22T08:00:00Z',
     severity: 'warning' as const,
     reportUserId: 'user-2',
     reportUserDisplayName: 'Alice',
   };
 
-  switch (overrides.type) {
+  switch (type) {
     case 'OVERDUE_LOCK':
       return {
         ...base,
-        type: 'OVERDUE_LOCK',
         weekStartDate: '2026-04-20',
         hoursOverdue: 14,
         ...overrides,
@@ -65,7 +65,6 @@ function makeException(overrides: Partial<ExceptionCard> & { type: ExceptionCard
     case 'REPEATED_CARRY_FORWARD':
       return {
         ...base,
-        type: 'REPEATED_CARRY_FORWARD',
         commitId: 'c-1',
         commitTitle: 'Fix performance regression',
         carryGeneration: 3,
@@ -75,7 +74,6 @@ function makeException(overrides: Partial<ExceptionCard> & { type: ExceptionCard
     case 'OUTCOME_COVERAGE_GAP':
       return {
         ...base,
-        type: 'OUTCOME_COVERAGE_GAP',
         outcomeId: 'o-1',
         outcomeTitle: 'Improve onboarding flow',
         weeksUncovered: 3,
@@ -119,10 +117,9 @@ describe('ManagerQueuePage', () => {
 
   it('renders exception cards', () => {
     const exceptions: ExceptionCard[] = [
-      makeException({ id: 'e1', type: 'OVERDUE_LOCK' }),
-      makeException({
+      makeException('OVERDUE_LOCK', { id: 'e1' }),
+      makeException('REPEATED_CARRY_FORWARD', {
         id: 'e2',
-        type: 'REPEATED_CARRY_FORWARD',
         commitTitle: 'Fix performance regression',
         carryGeneration: 3,
       }),

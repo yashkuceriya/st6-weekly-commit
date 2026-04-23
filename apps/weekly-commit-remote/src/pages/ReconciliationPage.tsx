@@ -82,12 +82,22 @@ export function ReconciliationPage() {
       <div className="space-y-6">
         <SectionHeader title="Reconcile your week" eyebrow={formatWeekRange(plan.weekStartDate)} />
         <Card>
-          <CardBody className="space-y-4 py-12 text-center">
-            <p className="font-serif text-lg text-ink">Not ready yet</p>
-            <p className="text-sm text-ink-muted">
-              Lock your plan first — reconciliation opens after you commit to the week.
-            </p>
-            <Button onClick={() => navigate('..')}>Back to planner</Button>
+          <CardBody className="flex flex-col items-center space-y-5 py-16 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-claude-50">
+              <svg className="h-7 w-7 text-claude-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </div>
+            <div className="space-y-2">
+              <p className="font-serif text-xl text-ink">Not quite time yet</p>
+              <p className="max-w-sm text-sm leading-relaxed text-ink-muted">
+                Lock your plan first to commit to the week. Once locked, you can return here to reconcile what you delivered vs. what you planned.
+              </p>
+            </div>
+            <Button variant="secondary" onClick={() => navigate('..')}>
+              Back to planner
+            </Button>
           </CardBody>
         </Card>
       </div>

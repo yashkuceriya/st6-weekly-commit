@@ -339,6 +339,17 @@ const NOW = new Date().toISOString();
 let planState: 'DRAFT' | 'LOCKED' | 'RECONCILING' | 'RECONCILED' = 'DRAFT';
 let planVersion = 1;
 
+// Week history — stores completed plans when a new week is created
+const weekHistory: {
+  id: string;
+  weekStartDate: string;
+  state: string;
+  commitCount: number;
+  commitTitles: string[];
+  reconciledAt: string | null;
+  lockedAt: string | null;
+}[] = [];
+
 let commits: any[] = [
   {
     id: 'c-1',
@@ -600,10 +611,26 @@ export const handlers = [
 
   http.post('/api/plans', async ({ request }) => {
     const body = (await request.json()) as { weekStartDate: string };
+    // Snapshot the current plan into history before resetting
+    if (commits.length > 0) {
+      weekHistory.unshift({
+        id: `hist-${Date.now()}`,
+        weekStartDate: WEEK_START,
+        state: planState,
+        commitCount: commits.filter((c) => c.active).length,
+        commitTitles: commits.filter((c) => c.active).map((c) => c.title),
+        reconciledAt: planState === 'RECONCILED' ? new Date().toISOString() : null,
+        lockedAt: planState !== 'DRAFT' ? new Date().toISOString() : null,
+      });
+    }
     planState = 'DRAFT';
     planVersion = 1;
     commits = [];
     return HttpResponse.json({ ...buildPlan(), weekStartDate: body.weekStartDate, commits: [] }, { status: 201 });
+  }),
+
+  http.get('/api/plans/history', () => {
+    return HttpResponse.json(weekHistory);
   }),
 
   http.post('/api/plans/:id/lock', () => {

@@ -14,12 +14,14 @@ const mockUseUpdateCommitMutation = vi.fn();
 const mockUseDeleteCommitMutation = vi.fn();
 const mockUseLockPlanMutation = vi.fn();
 const mockUseCreatePlanMutation = vi.fn();
+const mockUseGetPlanHistoryQuery = vi.fn();
 
 vi.mock('@st6/api-client', () => ({
   useGetCurrentPlanQuery: (...args: unknown[]) => mockUseGetCurrentPlanQuery(...args),
   useGetChessLayersQuery: (...args: unknown[]) => mockUseGetChessLayersQuery(...args),
   useGetStrategicTreeQuery: (...args: unknown[]) => mockUseGetStrategicTreeQuery(...args),
   useGetPlanActivityQuery: (...args: unknown[]) => mockUseGetPlanActivityQuery(...args),
+  useGetPlanHistoryQuery: (...args: unknown[]) => mockUseGetPlanHistoryQuery(...args),
   useAddCommitMutation: (...args: unknown[]) => mockUseAddCommitMutation(...args),
   useUpdateCommitMutation: (...args: unknown[]) => mockUseUpdateCommitMutation(...args),
   useDeleteCommitMutation: (...args: unknown[]) => mockUseDeleteCommitMutation(...args),
@@ -112,6 +114,7 @@ beforeEach(() => {
   mockUseGetChessLayersQuery.mockReturnValue({ data: chessLayers });
   mockUseGetStrategicTreeQuery.mockReturnValue({ data: [] });
   mockUseGetPlanActivityQuery.mockReturnValue({ data: [] });
+  mockUseGetPlanHistoryQuery.mockReturnValue({ data: [] });
   mockUseAddCommitMutation.mockReturnValue([vi.fn()]);
   mockUseUpdateCommitMutation.mockReturnValue([vi.fn()]);
   mockUseDeleteCommitMutation.mockReturnValue([vi.fn()]);

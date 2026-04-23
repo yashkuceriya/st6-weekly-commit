@@ -37,15 +37,29 @@ export function CommitCard({
   return (
     <Card
       className={cn(
-        'transition-shadow hover:shadow-lift hover:border-strong',
+        'group/card overflow-hidden transition-all duration-200 ease-out-soft',
+        'hover:shadow-lift hover:border-border-strong hover:-translate-y-0.5 hover:scale-[1.005]',
         hasErrors && 'border-danger/40 bg-danger-subtle/20',
       )}
+      style={chessLayer ? { borderLeftWidth: '3px', borderLeftColor: chessLayer.color } : undefined}
     >
-      <CardBody className="space-y-2 px-5 py-4">
+      <CardBody className="space-y-3 px-5 py-5">
         {/* Row 1: drag handle · priority · chess layer · breadcrumb */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           {!locked && (
-            <span className="cursor-move select-none text-ink-subtle" aria-label="Drag to reorder">⋮⋮</span>
+            <span
+              className="flex cursor-move select-none flex-col items-center gap-px rounded px-0.5 py-1 text-ink-subtle/50 transition-colors group-hover/card:text-ink-muted"
+              aria-label="Drag to reorder"
+            >
+              <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor" aria-hidden="true">
+                <circle cx="2" cy="2" r="1.25" />
+                <circle cx="8" cy="2" r="1.25" />
+                <circle cx="2" cy="7" r="1.25" />
+                <circle cx="8" cy="7" r="1.25" />
+                <circle cx="2" cy="12" r="1.25" />
+                <circle cx="8" cy="12" r="1.25" />
+              </svg>
+            </span>
           )}
           <span
             className={cn(
@@ -101,17 +115,19 @@ export function CommitCard({
         </div>
 
         {/* Row 2: Title */}
-        <h4 className="font-serif text-[1.125rem] leading-snug text-ink">{commit.title}</h4>
+        <h4 className="font-serif text-lg leading-snug text-ink">{commit.title}</h4>
 
-        {/* Row 4: Evidence */}
+        {/* Row 3: Evidence */}
         {commit.expectedEvidence && (
-          <p className="flex items-start gap-1.5 text-xs text-ink-muted">
-            <span className="mt-0.5 text-ink-subtle">✎</span>
+          <div className="flex items-start gap-2 rounded-md bg-cream-50 px-3 py-2 text-xs text-ink-muted">
+            <svg className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-subtle" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11.5 1.5L14.5 4.5M8 12L1.5 14.5L4 8L11.75 0.25C12.5 1 13.5 2 14.5 2.75L8 12Z" />
+            </svg>
             <span>
               <span className="font-medium text-ink-soft">Expected evidence:</span>{' '}
               <span className="italic">{commit.expectedEvidence}</span>
             </span>
-          </p>
+          </div>
         )}
 
         {/* Errors */}

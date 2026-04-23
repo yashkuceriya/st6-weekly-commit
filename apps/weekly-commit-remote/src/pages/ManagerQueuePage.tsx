@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useGetRollupHistoryQuery, useGetTeamExceptionsQuery } from '@st6/api-client';
 import { Card, CardBody, EmptyState, SectionHeader, Spinner } from '@st6/shared-ui';
 import { ExceptionCardView } from '../components/ExceptionCardView';
@@ -12,6 +12,7 @@ const DEMO_TEAM_ID = '00000000-0000-0000-0000-000000000010';
 
 export function ManagerQueuePage() {
   const [weekStart] = useState(currentWeekStartIso());
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const { data, isLoading, error } = useGetTeamExceptionsQuery({
     teamId: DEMO_TEAM_ID,
     weekStartDate: weekStart,
@@ -21,6 +22,10 @@ export function ManagerQueuePage() {
     endingWeek: weekStart,
     weeks: 8,
   });
+
+  const handleDismiss = useCallback((id: string) => {
+    setDismissedIds((prev) => new Set(prev).add(id));
+  }, []);
 
   if (isLoading) {
     return (
@@ -39,7 +44,7 @@ export function ManagerQueuePage() {
     );
   }
 
-  const cards = data.exceptions.content;
+  const cards = data.exceptions.content.filter((c) => !dismissedIds.has(c.id));
 
   return (
     <div className="space-y-6">
@@ -65,7 +70,7 @@ export function ManagerQueuePage() {
       ) : (
         <div className="space-y-3">
           {cards.map((card) => (
-            <ExceptionCardView key={card.id} card={card} />
+            <ExceptionCardView key={card.id} card={card} onDismiss={handleDismiss} />
           ))}
         </div>
       )}

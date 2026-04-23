@@ -6,6 +6,7 @@ import {
   useGetChessLayersQuery,
   useGetCurrentPlanQuery,
   useGetPlanActivityQuery,
+  useGetPlanHistoryQuery,
   useGetStrategicTreeQuery,
   useLockPlanMutation,
   useUpdateCommitMutation,
@@ -33,6 +34,7 @@ export function PlannerPage() {
   const { data: chessLayers } = useGetChessLayersQuery();
   const { data: tree } = useGetStrategicTreeQuery();
   const { data: activity } = useGetPlanActivityQuery(plan?.id ?? '', { skip: !plan?.id });
+  const { data: planHistory } = useGetPlanHistoryQuery();
   const [addCommit] = useAddCommitMutation();
   const [updateCommit] = useUpdateCommitMutation();
   const [deleteCommit] = useDeleteCommitMutation();
@@ -172,7 +174,7 @@ export function PlannerPage() {
   const linkedCount = activeCommits.filter((c) => c.supportingOutcomeId).length;
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
       {/* ─── Left column: commits ─── */}
       <div className="space-y-6">
         <PlanHeader plan={plan} readiness={readiness} onLock={handleLock} onNewWeek={handleNewWeek} locking={locking} />
@@ -185,10 +187,15 @@ export function PlannerPage() {
 
         {activeCommits.length === 0 ? (
           <EmptyState
+            icon={
+              <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+              </svg>
+            }
             title="First week on Weekly Commit?"
-            description="Start by picking a Supporting Outcome — everything else flows from there."
+            description="Pick a Supporting Outcome from your team's Rally Cry to create your first commit. Everything else flows from there."
             action={
-              isDraft ? <Button onClick={() => setAdding(true)}>Pick a Supporting Outcome →</Button> : undefined
+              isDraft ? <Button size="lg" onClick={() => setAdding(true)}>Pick a Supporting Outcome</Button> : undefined
             }
           />
         ) : (
@@ -231,9 +238,13 @@ export function PlannerPage() {
               <button
                 type="button"
                 onClick={() => setAdding(true)}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-transparent py-4 text-sm text-ink-subtle transition-colors hover:border-claude-300 hover:text-ink-soft"
+                className="flex w-full items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-border bg-cream-50/50 py-5 text-sm text-ink-subtle transition-all duration-200 hover:border-claude-300 hover:bg-claude-50/30 hover:text-ink-soft hover:shadow-soft"
               >
-                <span className="text-lg">+</span> Add commit
+                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                  <line x1="10" y1="4" x2="10" y2="16" />
+                  <line x1="4" y1="10" x2="16" y2="10" />
+                </svg>
+                Add commit
               </button>
             )}
           </div>
@@ -244,11 +255,11 @@ export function PlannerPage() {
       <aside className="space-y-4">
         {/* This week summary */}
         <Card>
-          <CardBody>
-            <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-subtle">This week</p>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="font-serif text-[2.25rem] leading-none text-ink">{activeCommits.length}</span>
-              <span className="text-sm text-ink-muted">Planned Commits</span>
+          <CardBody className="px-5 py-5">
+            <p className="font-mono text-[0.65rem] font-medium uppercase tracking-widest text-ink-subtle">This week</p>
+            <div className="mt-3 flex items-baseline gap-3">
+              <span className="font-serif text-[3rem] font-bold leading-none tracking-tight text-ink">{activeCommits.length}</span>
+              <span className="text-sm font-medium text-ink-muted">Planned<br />Commits</span>
             </div>
             {/* Chess layer distribution bar */}
             {chessDistribution.length > 0 && (
@@ -284,31 +295,62 @@ export function PlannerPage() {
 
         {/* Lock this week CTA */}
         {isDraft && (
-          <Card>
-            <CardBody className="space-y-3">
-              <h3 className="font-serif text-base text-ink">Lock this week</h3>
+          <Card className={cn(
+            'border-2 transition-colors',
+            readiness.canLock ? 'border-claude-300 bg-claude-50/30' : 'border-border',
+          )}>
+            <CardBody className="space-y-4 px-5 py-5">
+              <div className="flex items-center gap-2.5">
+                <div className={cn(
+                  'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+                  readiness.canLock ? 'bg-claude-400 text-white' : 'bg-cream-200 text-ink-subtle',
+                )}>
+                  <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="7" width="10" height="7" rx="1.5" />
+                    <path d="M5 7V5a3 3 0 116 0v2" />
+                  </svg>
+                </div>
+                <h3 className="font-serif text-lg font-medium text-ink">Lock this week</h3>
+              </div>
               {readiness.canLock ? (
-                <p className="rounded-md bg-success-subtle px-3 py-2 text-xs text-success">
-                  ✓ All commits validated
-                </p>
+                <div className="flex items-center gap-2 rounded-lg bg-success-subtle px-3.5 py-2.5 text-sm text-success">
+                  <svg className="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3.5 8.5L6.5 11.5L12.5 4.5" />
+                  </svg>
+                  All commits validated — ready to lock
+                </div>
               ) : (
-                <div className="space-y-2">
-                  <p className="text-xs text-ink-muted">
-                    You have {readiness.totalIssues} item{readiness.totalIssues === 1 ? '' : 's'} remaining before you can lock your plan for the week.
+                <div className="space-y-2.5">
+                  <p className="text-sm text-ink-muted">
+                    <span className="font-semibold text-ink-soft">{readiness.totalIssues}</span> item{readiness.totalIssues === 1 ? '' : 's'} remaining before you can lock.
                   </p>
-                  {Object.entries(readiness.errorsByCommit).slice(0, 3).flatMap(([commitId, errs]) => {
-                    const commit = activeCommits.find((c) => c.id === commitId);
-                    return Object.keys(errs).map((field) => (
-                      <p key={`${commitId}-${field}`} className="flex items-start gap-1.5 text-xs text-danger">
-                        <span className="mt-0.5">●</span>
-                        <span>{friendlyFieldName(field)} on &ldquo;{commit?.title?.slice(0, 35) ?? 'commit'}&rdquo;</span>
-                      </p>
-                    ));
-                  })}
+                  <div className="rounded-lg bg-cream-50 p-3 space-y-1.5">
+                    {Object.entries(readiness.errorsByCommit).slice(0, 3).flatMap(([commitId, errs]) => {
+                      const commit = activeCommits.find((c) => c.id === commitId);
+                      return Object.keys(errs).map((field) => (
+                        <p key={`${commitId}-${field}`} className="flex items-start gap-2 text-xs text-danger">
+                          <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-danger" />
+                          <span>{friendlyFieldName(field)} on &ldquo;{commit?.title?.slice(0, 30) ?? 'commit'}&rdquo;</span>
+                        </p>
+                      ));
+                    })}
+                  </div>
                 </div>
               )}
-              <Button className="w-full" onClick={handleLock} loading={locking} disabled={!readiness.canLock || locking}>
-                🔒 Lock week
+              <Button
+                size="lg"
+                className="w-full text-base"
+                onClick={handleLock}
+                loading={locking}
+                disabled={!readiness.canLock || locking}
+                iconLeft={
+                  <svg className="h-4.5 w-4.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="7" width="10" height="7" rx="1.5" />
+                    <path d="M5 7V5a3 3 0 116 0v2" />
+                  </svg>
+                }
+              >
+                Lock week
               </Button>
             </CardBody>
           </Card>
@@ -349,6 +391,44 @@ export function PlannerPage() {
             <ActivityFeed entries={mapActivity(activity)} />
           </CardBody>
         </Card>
+
+        {/* Previous weeks */}
+        {planHistory && planHistory.length > 0 && (
+          <Card variant="soft">
+            <CardHeader>
+              <h3 className="font-serif text-base text-ink">Previous weeks</h3>
+            </CardHeader>
+            <CardBody className="space-y-3">
+              {planHistory.map((entry) => (
+                <div key={entry.id} className="rounded-md border border-border bg-white px-3 py-2.5">
+                  <div className="flex items-center justify-between">
+                    <p className="font-mono text-[0.65rem] uppercase tracking-wider text-ink-subtle">
+                      Week of {formatWeekDate(entry.weekStartDate)}
+                    </p>
+                    <span className="rounded-full bg-success-subtle px-2 py-0.5 font-mono text-[0.6rem] uppercase tracking-wider text-success">
+                      {entry.state === 'RECONCILED' ? 'Reconciled' : entry.state.charAt(0) + entry.state.slice(1).toLowerCase()}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-ink-muted">
+                    {entry.commitCount} commit{entry.commitCount === 1 ? '' : 's'}
+                  </p>
+                  <div className="mt-1.5 space-y-0.5">
+                    {entry.commitTitles.slice(0, 3).map((title, i) => (
+                      <p key={i} className="truncate text-xs text-ink-subtle">
+                        {title}
+                      </p>
+                    ))}
+                    {entry.commitTitles.length > 3 && (
+                      <p className="text-xs text-ink-subtle">
+                        +{entry.commitTitles.length - 3} more
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </CardBody>
+          </Card>
+        )}
       </aside>
 
       {/* Modal */}
@@ -414,4 +494,9 @@ const FIELD_LABELS: Record<string, string> = {
 
 function friendlyFieldName(field: string): string {
   return FIELD_LABELS[field] ?? `Missing ${field}`;
+}
+
+function formatWeekDate(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
