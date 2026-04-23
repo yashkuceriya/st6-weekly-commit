@@ -35,12 +35,18 @@ export function ExceptionCardView({ card, onDismiss }: ExceptionCardViewProps) {
 
   const handleAction = useCallback(() => {
     setClicked(true);
-    onDismiss?.(card.id);
-    setTimeout(() => setClicked(false), 2000);
+    // Show feedback for 1.2s, THEN dismiss
+    setTimeout(() => {
+      onDismiss?.(card.id);
+    }, 1200);
   }, [card.id, onDismiss]);
 
   return (
-    <Card className={cn(severityStyles[card.severity] ?? severityStyles.info)}>
+    <Card className={cn(
+      'transition-all duration-500',
+      severityStyles[card.severity] ?? severityStyles.info,
+      clicked && 'scale-[0.98] opacity-60',
+    )}>
       <CardBody className="space-y-2">
         <div className="flex items-start justify-between gap-3">
           <div>
