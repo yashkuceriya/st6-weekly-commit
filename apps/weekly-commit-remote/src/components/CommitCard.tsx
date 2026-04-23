@@ -67,9 +67,9 @@ export function CommitCard({
               {chessLayer.name}
             </span>
           )}
-          {pathSegments && pathSegments.length > 0 && (
+          {pathSegments && pathSegments.length > 1 && (
             <span className="font-mono text-[0.65rem] text-ink-muted">
-              {pathSegments.map((s, i) => (
+              {pathSegments.slice(-2).map((s, i) => (
                 <span key={s.id}>
                   {i > 0 && <span className="mx-1 text-ink-subtle">›</span>}
                   {s.label}
@@ -100,14 +100,7 @@ export function CommitCard({
           </div>
         </div>
 
-        {/* Row 2 (breadcrumb second line when SO is deep) */}
-        {pathSegments && pathSegments.length > 2 && (
-          <p className="ml-[1.1rem] font-mono text-[0.6rem] uppercase tracking-wide text-ink-subtle">
-            {pathSegments.slice(-2).map((s) => s.label).join(' › ')}
-          </p>
-        )}
-
-        {/* Row 3: Title */}
+        {/* Row 2: Title */}
         <h4 className="font-serif text-[1.125rem] leading-snug text-ink">{commit.title}</h4>
 
         {/* Row 4: Evidence */}
