@@ -49,11 +49,20 @@ export function ExceptionCardView({ card, onDismiss }: ExceptionCardViewProps) {
     )}>
       <CardBody className="space-y-2">
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="font-mono text-[0.65rem] uppercase tracking-wider text-ink-subtle">
-              {labelFor(card.type)}
-            </p>
-            <h3 className="font-serif text-base text-ink">{titleFor(card)}</h3>
+          <div className="flex items-start gap-3">
+            {/* Avatar */}
+            <div className={cn(
+              'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white',
+              card.severity === 'critical' ? 'bg-danger' : card.severity === 'warning' ? 'bg-warning' : 'bg-ink-muted',
+            )}>
+              {initials(card.reportUserDisplayName)}
+            </div>
+            <div>
+              <p className="font-mono text-[0.65rem] uppercase tracking-wider text-ink-subtle">
+                {labelFor(card.type)}
+              </p>
+              <h3 className="font-serif text-base text-ink">{titleFor(card)}</h3>
+            </div>
           </div>
           <button
             type="button"
@@ -124,4 +133,8 @@ function actionLabelFor(type: string): string {
     default:
       return 'Open';
   }
+}
+
+function initials(name: string): string {
+  return name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 }
