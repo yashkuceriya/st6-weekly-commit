@@ -14,12 +14,16 @@ interface ActivityFeedProps {
 }
 
 const eventGlyph: Record<string, { color: string; label: string }> = {
-  PLAN_LOCKED: { color: 'bg-claude-400', label: 'Locked' },
+  PLAN_CREATED: { color: 'bg-claude-300', label: 'Plan started' },
+  PLAN_LOCKED: { color: 'bg-claude-400', label: 'Week locked' },
   PLAN_RECONCILED: { color: 'bg-success', label: 'Reconciled' },
+  RECONCILIATION_STARTED: { color: 'bg-warning', label: 'Reconciliation opened' },
   REVIEW_SUBMITTED: { color: 'bg-claude-500', label: 'Reviewed' },
   COMMIT_ADDED: { color: 'bg-cream-400', label: 'Commit added' },
+  COMMIT_UPDATED: { color: 'bg-cream-300', label: 'Commit updated' },
   COMMIT_EDITED: { color: 'bg-cream-300', label: 'Commit edited' },
   COMMIT_DELETED: { color: 'bg-danger', label: 'Commit removed' },
+  COMMIT_CARRIED_FORWARD: { color: 'bg-warning', label: 'Carried forward' },
 };
 
 export function ActivityFeed({ entries, className }: ActivityFeedProps) {

@@ -80,11 +80,12 @@ export function ReconciliationPage() {
   if (plan.state === 'DRAFT') {
     return (
       <div className="space-y-6">
-        <SectionHeader title="Reconcile" eyebrow="Friday" />
+        <SectionHeader title="Reconcile your week" eyebrow={formatWeekRange(plan.weekStartDate)} />
         <Card>
-          <CardBody className="space-y-3 text-center">
+          <CardBody className="space-y-4 py-12 text-center">
+            <p className="font-serif text-lg text-ink">Not ready yet</p>
             <p className="text-sm text-ink-muted">
-              Your plan is still in draft — lock it before reconciling.
+              Lock your plan first — reconciliation opens after you commit to the week.
             </p>
             <Button onClick={() => navigate('..')}>Back to planner</Button>
           </CardBody>

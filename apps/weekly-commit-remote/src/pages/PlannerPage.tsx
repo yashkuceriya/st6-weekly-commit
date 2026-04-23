@@ -301,7 +301,7 @@ export function PlannerPage() {
                     return Object.keys(errs).map((field) => (
                       <p key={`${commitId}-${field}`} className="flex items-start gap-1.5 text-xs text-danger">
                         <span className="mt-0.5">●</span>
-                        <span>Missing &ldquo;{field}&rdquo; on {commit?.title?.slice(0, 30) ?? 'commit'}.</span>
+                        <span>{friendlyFieldName(field)} on &ldquo;{commit?.title?.slice(0, 35) ?? 'commit'}&rdquo;</span>
                       </p>
                     ));
                   })}
@@ -403,4 +403,15 @@ function buildPathIndex(roots: StrategicNodeWithChildren[]): Map<string, Breadcr
   }
   for (const r of roots) walk(r, []);
   return out;
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  supportingOutcome: 'Missing Supporting Outcome',
+  chessLayer: 'Missing chess layer',
+  expectedEvidence: 'Missing expected evidence',
+  priority: 'Missing priority',
+};
+
+function friendlyFieldName(field: string): string {
+  return FIELD_LABELS[field] ?? `Missing ${field}`;
 }
